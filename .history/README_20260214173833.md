@@ -1,0 +1,45 @@
+# Git Discipline Demo Repository
+
+This repo is a demo project architecture to showcase team Git discipline in a live presentation.
+
+## What this demo includes
+
+- `develop` + `main` workflow documented in `CONTRIBUTING.md`
+- Conventional Commit enforcement (local + CI)
+- Branch naming enforcement (local + CI)
+- CI pipeline (`lint`, `test`, `typecheck`, `build`)
+- Demo CD pipeline on `main`
+
+## Quick start
+
+```bash
+npm install
+npm run prepare
+```
+
+## Demo commands
+
+```bash
+npm run lint
+npm run test
+npm run typecheck
+npm run build
+```
+
+## Branch naming pattern
+
+- `feature/CLIK-142-auth-navigation`
+- `fix/CLIK-201-crash-on-start`
+- `chore/update-deps`
+- `hotfix/CLIK-301-crash-on-launch`
+
+## Important GitHub settings to enable manually
+
+1. Protect `main` and `develop`
+2. Require pull request before merging
+3. Require status checks:
+   - `ci`
+   - `commitlint`
+   - `branch-name`
+4. Require at least 1 approval
+5. Restrict direct pushes

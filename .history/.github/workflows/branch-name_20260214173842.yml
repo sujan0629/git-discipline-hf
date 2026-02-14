@@ -1,0 +1,24 @@
+name: branch-name
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches-ignore: [main, develop]
+
+jobs:
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          node scripts/validate-branch-name.mjs "$BRANCH"
