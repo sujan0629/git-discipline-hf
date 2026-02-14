@@ -1,129 +1,132 @@
-# Git Discipline Setup Playbook
+# Git Discipline Template Playbook
 
-This document explains what was implemented in this repository, why it exists, and how any developer can recreate the same setup in a new repository.
+This repository should be used as a **GitHub Template Repository** for new projects.
+It provides universal Git policy plus reusable automation that teams adapt per stack.
 
-## 1) What was set up in this repo
+## Template URL (single source of truth)
 
-- Workflow model: `develop` (integration) + `main` (production)
-- Pull-request-first development with squash merges
-- Conventional Commits enforcement (local hook + CI)
-- Branch naming enforcement (local hook + CI)
-- CI checks (`lint`, `test`, `typecheck`, `build`)
-- Demo CD workflow on pushes to `main`
+Replace this once and keep it permanent:
 
-## 2) Files created and what each does
+```text
+https://github.com/your-org/git-discipline-template
+```
 
-### Root files
+Share this exact URL with your team:
 
-- `README.md` — quick-start and high-level policy summary
-- `CONTRIBUTING.md` — source-of-truth workflow rules for the team
-- `git-disclipine.md` — compact architecture snapshot for presentation/demo
-- `package.json` — scripts, dev dependencies, `lint-staged` config
-- `package-lock.json` — dependency lock for reproducible installs
-- `.gitignore` — excludes build/dependency artifacts
-- `commitlint.config.cjs` — Conventional Commit rule config
-- `eslint.config.mjs` — lint rules used by CI and local checks
+```text
+When starting any new project, create it from this template repository.
+```
 
-### Hook files (`.husky/`)
+## How this template works
 
-- `.husky/commit-msg` — blocks invalid commit messages and shows message format help
-- `.husky/pre-commit` — runs `lint-staged` before commit finalization
-- `.husky/pre-push` — validates branch naming before push
+### Developer flow (every new project)
 
-### CI/CD files (`.github/workflows/`)
+1. Open template repository URL
+2. Click **Use this template** → **Create a new repository**
+3. Set repository name and visibility
+4. Create repository
+5. Clone and run one-time local hook setup for the project stack
+6. Update stack-specific CI/deploy scripts in `.ci/`
 
-- `.github/workflows/ci.yml` — runs lint/test/typecheck/build
-- `.github/workflows/commitlint.yml` — validates commit messages on PRs
-- `.github/workflows/branch-name.yml` — validates branch naming on push/PR
-- `.github/workflows/cd-demo.yml` — demo deploy simulation on `main`
+## Automation layers in this template
 
-### Script files (`scripts/`)
+### Layer 1 — CI workflows (stack-agnostic)
 
-- `scripts/validate-branch-name.mjs` — enforces branch patterns:
+These workflows are copied as-is into every new repository from template:
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/commitlint.yml`
+- `.github/workflows/branch-name.yml`
+- `.github/workflows/cd-demo.yml`
+
+Notes:
+
+- `commitlint` and `branch-name` enforce universal Git policy.
+- `ci` and `cd-demo` call project-owned scripts:
+  - `.ci/commands.sh`
+  - `.ci/deploy.sh`
+
+This keeps workflows universal while letting each stack plug in its own commands.
+
+### Layer 2 — Local hooks (cross-stack)
+
+This template uses **Lefthook** for local enforcement across stacks:
+
+- `lefthook.yml`
+- `scripts/hooks/validate-commit-msg.sh`
+- `scripts/hooks/validate-branch-name.sh`
+
+Lefthook is runtime-agnostic and works for Node, Python/Django, Go, and others.
+
+## What this template contains
+
+- `CONTRIBUTING.md`: universal branch, PR, release, and commit policy
+- `SETUP-PLAYBOOK.md`: team onboarding and template usage guide
+- `git-disclipine.md`: short architecture/context note for presentations
+- `lefthook.yml`: local hook orchestration
+- `scripts/hooks/*.sh`: local validation scripts
+- `.github/workflows/*.yml`: server-side CI policy and pipeline scaffolding
+- `.ci/commands.sh`: stack-specific CI commands placeholder
+- `.ci/deploy.sh`: stack-specific deploy commands placeholder
+- `commitlint.config.cjs`: commitlint policy for CI workflow
+
+## How teams should apply this to any stack
+
+Each project keeps the same Git policy and fills in stack-specific commands.
+
+### Required policy (same everywhere)
+
+- branch naming:
   - `feature/<short-name>`
   - `fix/<short-name>`
   - `hotfix/<short-name>`
   - `chore/<short-name>`
-- `scripts/typecheck-check.mjs` — demo typecheck placeholder used in CI
-- `scripts/build-check.mjs` — demo build placeholder used in CI
+- Conventional Commit messages
+- PR-first workflow
+- protected `main` and `develop`
+- required checks before merge
 
-### Demo code
+## Practical setup per stack
 
-- `src/index.js` — sample module
-- `tests/smoke.test.js` — sample Node test for CI demo
+| Stack | Hook tool | One-time setup command |
+|---|---|---|
+| Node / Next / React | Lefthook | `lefthook install` |
+| Python / Django | Lefthook (or pre-commit if team standard) | `lefthook install` |
+| Go / Others | Lefthook | `lefthook install` |
 
-## 3) Step-by-step setup in a new repo
+After hook install, edit `.ci/commands.sh` and `.ci/deploy.sh` for that project.
 
-Use these steps when another developer wants the same setup from scratch.
+Examples:
 
-1. Create repository and initialize Node project
+- Node: run `npm ci`, `npm run lint`, `npm run test`, `npm run build`
+- Django: run `pip install -r requirements.txt`, `ruff check .`, `pytest`
+- Go: run `go fmt ./...`, `go vet ./...`, `go test ./...`
 
-```bash
-git init
-npm init -y
-```
+## New project bootstrap checklist
 
-2. Install required dev dependencies
+When a team creates a new project from template, do this immediately:
 
-```bash
-npm i -D husky lint-staged @commitlint/cli @commitlint/config-conventional eslint
-```
+1. Create `develop` from `main`
+2. Configure branch protections for `main` and `develop`
+3. Run `lefthook install`
+4. Update `.ci/commands.sh` and `.ci/deploy.sh`
+5. Add required status checks in branch protection
+6. Open first PR to verify end-to-end workflow
 
-3. Add base files
+## GitHub branch protection baseline
 
-- Add `CONTRIBUTING.md`, `README.md`, `.gitignore`
-- Add `commitlint.config.cjs` and `eslint.config.mjs`
-- Add `scripts/` + `.github/workflows/` + `.husky/` files
+Apply this in every new repository:
 
-4. Configure scripts in `package.json`
+- protect `main` and `develop`
+- require pull request before merge
+- require at least one approval
+- require required status checks
+- restrict direct pushes
+- enable auto-delete head branches (optional but recommended)
 
-```json
-{
-  "type": "module",
-  "scripts": {
-    "prepare": "husky install",
-    "lint": "eslint . --max-warnings=0",
-    "test": "node --test",
-    "typecheck": "node scripts/typecheck-check.mjs",
-    "build": "node scripts/build-check.mjs",
-    "validate:branch": "node scripts/validate-branch-name.mjs"
-  }
-}
-```
+## Copy/paste templates
 
-5. Install and enable hooks
-
-```bash
-npm run prepare
-```
-
-6. Create long-lived branches
-
-```bash
-git checkout -b main
-git checkout -b develop
-```
-
-7. Set GitHub branch protections manually
-
-- Protect `main` and `develop`
-- Require PR before merge
-- Require status checks: `ci`, `commitlint`, `branch-name`
-- Require at least 1 approval
-- Restrict direct push
-
-8. Validate locally
-
-```bash
-npm run lint
-npm run test
-npm run typecheck
-npm run build
-```
-
-## 4) Team templates (copy/paste)
-
-### Branch name template
+### Branch names
 
 ```text
 feature/<short-name>
@@ -132,64 +135,51 @@ hotfix/<short-name>
 chore/<short-name>
 ```
 
-Examples:
-
-- `feature/auth-navigation`
-- `fix/login-crash`
-- `hotfix/prod-timeout`
-- `chore/update-eslint`
-
-### Commit message template
+### Commit messages
 
 ```text
 type(scope): description
-```
-
-Scope is optional:
-
-```text
 type: description
 ```
 
 Examples:
 
-- `feat(auth): add route guard`
-- `fix(api): handle null token`
-- `chore: update readme`
+- `feat(auth): add login route guard`
+- `fix(api): handle timeout response`
+- `chore: update contributing policy`
 
-### PR title template
-
-Use the same format as Conventional Commits:
+### PR title
 
 ```text
-feat(auth): add login route guard
+type(scope): short summary
 ```
 
-### PR checklist template
+### PR checklist
 
 ```markdown
-- [ ] Branch name follows policy (`feature/...`, `fix/...`, `hotfix/...`, `chore/...`)
+- [ ] Branch name follows policy
 - [ ] Commit messages follow Conventional Commits
-- [ ] `npm run lint` passes
-- [ ] `npm run test` passes
-- [ ] `npm run typecheck` passes
-- [ ] `npm run build` passes
+- [ ] Stack-specific CI checks pass
 - [ ] PR title follows Conventional Commits
+- [ ] At least one approval received
 ```
 
-## 5) Common gotchas
+## Maintenance model
 
-- If bad commit messages are not blocked, ensure `.husky/commit-msg` exists and `npm run prepare` was run.
-- If branch checks fail on push, rename branch to short-name format (no ticket ID).
-- If CI is not required at merge time, branch protection rules are missing in GitHub settings.
+- Update this template repository when policy changes
+- New projects use the latest template at creation time
+- Existing projects are not auto-modified; update them intentionally as needed
 
-## 6) Minimal command cheat sheet
+## FAQ
 
-```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/your-short-name
-git add .
-git commit -m "feat(scope): short description"
-git push -u origin feature/your-short-name
-```
+### Does changing template update existing repositories automatically?
+
+No. Existing repositories keep their own files. Update them manually when needed.
+
+### Can teams use different tooling?
+
+Yes. Tooling may differ by stack. Policy should remain consistent.
+
+### Why Lefthook in this template?
+
+Because it is cross-stack and avoids package-manager lock-in while still providing local automation.

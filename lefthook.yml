@@ -1,0 +1,11 @@
+commit-msg:
+  scripts:
+    validate-commit-message:
+      runner: bash
+      script: scripts/hooks/validate-commit-msg.sh "$1"
+
+pre-push:
+  scripts:
+    validate-branch-name:
+      runner: bash
+      script: scripts/hooks/validate-branch-name.sh
