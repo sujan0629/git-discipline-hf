@@ -5,14 +5,16 @@ on:
     branches: [main]
 
 jobs:
-  deploy-demo:
+  release-gate:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Simulate deployment
+      - name: Run deploy script if present
         run: |
-          echo "Deploying commit $GITHUB_SHA to production"
-          echo "Demo deployment complete"
+          if [ -f .ci/deploy.sh ]; then
+            bash .ci/deploy.sh
+          else
+            echo "No .ci/deploy.sh found. Add stack/project deploy steps in generated repositories."
+          fi
